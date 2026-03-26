@@ -20,7 +20,10 @@ from contextlib import contextmanager
 from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from fastapi.responses import StreamingResponse
+# --- CAMBIO 1: NUEVAS IMPORTACIONES PARA EL FRONTEND ---
+from fastapi.responses import StreamingResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+# ------------------------------------------------------
 from pydantic import BaseModel
 from passlib.hash import pbkdf2_sha256
 from jose import JWTError, jwt
@@ -423,18 +426,15 @@ def build_email_template(title: str, content: str, footer: str = "") -> str:
       <table width="100%" cellpadding="0" cellspacing="0" style="background:#030712;padding:40px 0;">
         <tr><td align="center">
           <table width="580" cellpadding="0" cellspacing="0" style="background:#0d1117;border-radius:16px;overflow:hidden;border:1px solid rgba(99,102,241,0.3);box-shadow:0 0 40px rgba(99,102,241,0.15);">
-            <!-- Header -->
             <tr><td style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:28px 36px;text-align:center;">
               <p style="margin:0;font-size:28px;">🛒</p>
               <h1 style="margin:8px 0 4px;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:1px;">VentasFlow</h1>
               <p style="margin:0;color:rgba(255,255,255,0.7);font-size:13px;">Plataforma SaaS · Supermercado</p>
             </td></tr>
-            <!-- Body -->
             <tr><td style="padding:36px;">
               <h2 style="margin:0 0 20px;color:#e2e8f0;font-size:18px;">{title}</h2>
               {content}
             </td></tr>
-            <!-- Footer -->
             <tr><td style="background:#0f172a;padding:20px 36px;border-top:1px solid rgba(255,255,255,0.05);">
               <p style="margin:0;color:#475569;font-size:12px;text-align:center;">
                 {footer if footer else "Este es un correo automático de VentasFlow. No respondas a este mensaje."}
@@ -1375,3 +1375,12 @@ def health():
         "version": "1.1.0",
         "license": lic["license_type"] if lic else "NO_LICENSE"
     }
+
+# ─── CAMBIO 2: RUTAS MÁGICAS PARA LA INTERFAZ (INDEX.HTML) ───
+# Esto le dice a Render que el link principal debe mostrar tu login
+app.mount("/static", StaticFiles(directory="."), name="static")
+
+@app.get("/")
+async def read_index():
+    return FileResponse("index.html")
+# ─────────────────────────────────────────────────────────────
