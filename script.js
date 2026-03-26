@@ -5,7 +5,7 @@
  * Exportar Excel, Filtro por fechas, Iconos de pago
  */
 
-const API = "http://127.0.0.1:8000/api";
+const API_URL = "https://ventasflowupana.onrender.com";
 
 let currentUser   = null;
 let authToken     = null;
