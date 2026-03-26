@@ -1378,7 +1378,7 @@ def health():
 
 # ─── CAMBIO 2: RUTAS MÁGICAS PARA LA INTERFAZ (INDEX.HTML) ───
 # Esto le dice a Render que el link principal debe mostrar tu login
-app.mount("/static", StaticFiles(directory="."), name="static")
+app.mount("/", StaticFiles(directory=".", html=True), name="static")
 
 @app.get("/")
 async def read_index():
