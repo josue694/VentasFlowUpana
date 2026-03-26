@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VentasFlow — SaaS Supermercado</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{display:['Syne','sans-serif'],body:['DM Sans','sans-serif']}}}}</script>
+  <style>
+    :root{--glass-bg:rgba(255,255,255,0.04);--glass-border:rgba(255,255,255,0.10);--dark-bg:#030712;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:var(--dark-bg);color:#e2e8f0;min-height:100vh;overflow-x:hidden;}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 0%,rgba(99,102,241,0.12) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(34,211,238,0.08) 0%,transparent 60%);pointer-events:none;z-index:0;}
+    .glass{background:var(--glass-bg);border:1px solid var(--glass-border);backdrop-filter:blur(24px);}
+    .glass-solid{background:rgba(13,17,23,0.92);border:1px solid rgba(255,255,255,0.07);backdrop-filter:blur(40px);}
+    .neon-violet{box-shadow:0 0 20px rgba(99,102,241,0.3),0 0 60px rgba(99,102,241,0.1);}
+    .neon-cyan{box-shadow:0 0 20px rgba(34,211,238,0.3),0 0 60px rgba(34,211,238,0.1);}
+    .neon-pink{box-shadow:0 0 20px rgba(236,72,153,0.3),0 0 60px rgba(236,72,153,0.1);}
+    .neon-green{box-shadow:0 0 20px rgba(16,185,129,0.3),0 0 60px rgba(16,185,129,0.1);}
+    .grad-violet{background:linear-gradient(135deg,#818cf8,#6366f1);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+    .grad-cyan{background:linear-gradient(135deg,#67e8f9,#22d3ee);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+    .grad-multi{background:linear-gradient(135deg,#818cf8 0%,#22d3ee 50%,#ec4899 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+    .btn-primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);border:1px solid rgba(99,102,241,0.5);color:white;padding:10px 24px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:600;font-size:14px;cursor:pointer;transition:all 0.3s;box-shadow:0 4px 15px rgba(99,102,241,0.3);}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(99,102,241,0.5);}
+    .btn-danger{background:linear-gradient(135deg,#ef4444,#dc2626);border:1px solid rgba(239,68,68,0.4);color:white;padding:6px 14px;border-radius:8px;font-size:13px;cursor:pointer;transition:all 0.2s;}
+    .btn-danger:hover{box-shadow:0 4px 15px rgba(239,68,68,0.4);}
+    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.15);color:#94a3b8;padding:8px 18px;border-radius:8px;font-size:13px;cursor:pointer;transition:all 0.2s;}
+    .btn-ghost:hover{border-color:rgba(99,102,241,0.5);color:#818cf8;background:rgba(99,102,241,0.08);}
+    .input-dark{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 14px;color:#e2e8f0;font-family:'DM Sans',sans-serif;font-size:14px;transition:all 0.2s;width:100%;outline:none;}
+    .input-dark::placeholder{color:#475569;}
+    .input-dark:focus{border-color:rgba(99,102,241,0.6);box-shadow:0 0 0 3px rgba(99,102,241,0.12);background:rgba(99,102,241,0.06);}
+    select.input-dark option{background:#0f172a;}
+    #sidebar{position:fixed;left:0;top:0;bottom:0;width:240px;z-index:50;border-right:1px solid rgba(255,255,255,0.07);background:rgba(9,12,22,0.97);backdrop-filter:blur(40px);display:flex;flex-direction:column;}
+    .nav-item{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:10px;cursor:pointer;color:#64748b;font-size:14px;font-weight:500;transition:all 0.2s;margin:2px 8px;}
+    .nav-item:hover{background:rgba(99,102,241,0.1);color:#a5b4fc;}
+    .nav-item.active{background:rgba(99,102,241,0.15);color:#818cf8;border:1px solid rgba(99,102,241,0.3);}
+    .nav-item .icon{font-size:18px;}
+    #topbar{position:fixed;top:0;left:240px;right:0;height:64px;z-index:40;background:rgba(3,7,18,0.9);border-bottom:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-between;padding:0 24px;}
+    #content{margin-left:240px;margin-top:64px;padding:28px;position:relative;z-index:1;min-height:calc(100vh - 64px);}
+    .kpi-card{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:16px;padding:20px 24px;transition:all 0.3s;position:relative;overflow:hidden;}
+    .kpi-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(99,102,241,0.05) 0%,transparent 60%);pointer-events:none;}
+    .kpi-card:hover{transform:translateY(-4px);border-color:rgba(99,102,241,0.3);}
+    .product-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px;cursor:pointer;transition:all 0.2s;text-align:center;}
+    .product-card:hover{background:rgba(99,102,241,0.12);border-color:rgba(99,102,241,0.4);transform:scale(1.02);box-shadow:0 4px 20px rgba(99,102,241,0.2);}
+    .product-card:active{transform:scale(0.98);}
+    .cart-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);margin-bottom:8px;transition:all 0.2s;}
+    .cart-item:hover{background:rgba(99,102,241,0.08);border-color:rgba(99,102,241,0.2);}
+    .badge-trial{background:rgba(234,179,8,0.15);border:1px solid rgba(234,179,8,0.4);color:#fbbf24;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+    .badge-pro{background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.4);color:#818cf8;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+    .badge-enterprise{background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.4);color:#f472b6;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+    .data-table{width:100%;border-collapse:collapse;font-size:13px;}
+    .data-table thead th{padding:10px 14px;text-align:left;font-family:'Syne',sans-serif;font-weight:600;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#475569;border-bottom:1px solid rgba(255,255,255,0.06);}
+    .data-table tbody tr{transition:background 0.15s;border-bottom:1px solid rgba(255,255,255,0.03);}
+    .data-table tbody tr:hover{background:rgba(99,102,241,0.06);}
+    .data-table tbody td{padding:10px 14px;color:#94a3b8;}
+    #toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+    .toast{padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;backdrop-filter:blur(20px);animation:slideIn 0.3s ease;max-width:320px;display:flex;align-items:center;gap:8px;}
+    .toast.success{background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#34d399;}
+    .toast.error{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#f87171;}
+    .toast.info{background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.4);color:#818cf8;}
+    .toast.warning{background:rgba(234,179,8,0.15);border:1px solid rgba(234,179,8,0.4);color:#fbbf24;}
+    @keyframes slideIn{from{transform:translateX(100px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+    #login-screen{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:var(--dark-bg);}
+    #login-screen::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 30% 20%,rgba(99,102,241,0.15) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 70% 80%,rgba(34,211,238,0.1) 0%,transparent 55%);}
+    ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:rgba(99,102,241,0.3);border-radius:2px;}
+    .fade-in{animation:fadeIn 0.5s ease forwards;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+    .section-view{display:none;animation:fadeIn 0.4s ease;}
+    .section-view.active{display:block;}
+    .logo-ring{animation:ring-pulse 3s ease-in-out infinite;}
+    @keyframes ring-pulse{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,0.4);}50%{box-shadow:0 0 0 8px rgba(99,102,241,0);}}
+    .tab-btn{padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;font-family:'Syne',sans-serif;cursor:pointer;transition:all 0.2s;color:#64748b;background:transparent;border:none;}
+    .tab-btn.active{background:rgba(99,102,241,0.15);color:#818cf8;border:1px solid rgba(99,102,241,0.3);}
+    .spinner{width:20px;height:20px;border:2px solid rgba(99,102,241,0.2);border-top-color:#6366f1;border-radius:50%;animation:spin 0.8s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .role-admin{background:rgba(236,72,153,0.12);color:#f472b6;border:1px solid rgba(236,72,153,0.3);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;}
+    .role-gerente{background:rgba(34,211,238,0.12);color:#67e8f9;border:1px solid rgba(34,211,238,0.3);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;}
+    .role-cajero{background:rgba(16,185,129,0.12);color:#34d399;border:1px solid rgba(16,185,129,0.3);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;}
+    #pos-layout{display:grid;grid-template-columns:1fr 360px;gap:20px;height:calc(100vh - 64px - 56px);}
+    #products-panel{overflow-y:auto;}
+    #cart-panel{display:flex;flex-direction:column;overflow:hidden;}
+    #cart-items{overflow-y:auto;flex:1;}
+    .modal-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;animation:fadeIn 0.2s ease;}
+    .modal-box{background:#0d1117;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:28px;width:90%;max-width:460px;position:relative;animation:modalIn 0.3s ease;}
+    @keyframes modalIn{from{transform:scale(0.9);opacity:0;}to{transform:scale(1);opacity:1;}}
+    .goal-bar-track{background:rgba(255,255,255,0.06);border-radius:6px;height:10px;overflow:hidden;margin-top:6px;}
+    .goal-bar-fill{height:100%;background:linear-gradient(90deg,#6366f1,#22d3ee);border-radius:6px;transition:width 1s ease;}
+    /* Light mode */
+    .light-mode body{background:#f1f5f9!important;color:#0f172a!important;}
+    .light-mode .glass{background:rgba(255,255,255,0.8)!important;border-color:rgba(0,0,0,0.08)!important;}
+    .light-mode .glass-solid{background:rgba(255,255,255,0.95)!important;}
+    .light-mode #sidebar{background:rgba(248,250,252,0.97)!important;}
+    .light-mode #topbar{background:rgba(241,245,249,0.95)!important;}
+    .light-mode .input-dark{background:rgba(0,0,0,0.04)!important;border-color:rgba(0,0,0,0.12)!important;color:#0f172a!important;}
+    .light-mode .nav-item{color:#64748b!important;}
+    .light-mode .data-table tbody td{color:#475569!important;}
+    .light-mode .product-card{background:rgba(0,0,0,0.03)!important;border-color:rgba(0,0,0,0.08)!important;}
+    .light-mode .cart-item{background:rgba(0,0,0,0.03)!important;}
+    .light-mode .kpi-card{background:rgba(255,255,255,0.7)!important;}
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="relative z-10 w-full max-w-md px-4">
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 logo-ring mb-4 neon-violet" style="font-size:28px;">🛒</div>
+      <h1 class="text-3xl font-extrabold font-display grad-multi">VentasFlow</h1>
+      <p class="text-sm text-slate-500 mt-1">Plataforma SaaS · Supermercado</p>
+    </div>
+    <div class="glass-solid rounded-2xl p-8 neon-violet">
+      <div class="flex gap-2 mb-6 p-1 rounded-xl" style="background:rgba(255,255,255,0.05);">
+        <button class="tab-btn active flex-1" onclick="switchLoginTab('signin')" id="tab-signin">Iniciar Sesión</button>
+        <button class="tab-btn flex-1" onclick="switchLoginTab('request')" id="tab-request">Solicitar Acceso</button>
+      </div>
+      <div id="pane-signin">
+        <div class="space-y-4">
+          <div><label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Usuario</label>
+            <input id="login-user" class="input-dark" type="text" placeholder="superadmin / admin / gerente / cajero" /></div>
+          <div><label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Contraseña</label>
+            <input id="login-pass" class="input-dark" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" /></div>
+          <button class="btn-primary w-full text-center mt-2" onclick="doLogin()"><span id="login-btn-txt">Ingresar al Sistema</span></button>
+        </div>
+        <div class="mt-4 text-center"><button style="font-size:12px;color:#818cf8;" onclick="switchLoginTab('forgot')">¿Olvidé mi contraseña?</button></div>
+        <div class="mt-5 p-3 rounded-xl" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);font-size:12px;color:#475569;">
+          <p style="font-weight:600;color:#64748b;margin-bottom:4px;">Cuentas de prueba:</p>
+          <p>superadmin/super123 · admin/admin123 · gerente/gerente123 · cajero/cajero123</p>
+        </div>
+      </div>
+      <div id="pane-request" class="hidden">
+        <p class="text-sm text-slate-400 mb-4">Ingresa tu correo corporativo para recibir credenciales.</p>
+        <div class="space-y-4">
+          <input id="req-email" class="input-dark" type="email" placeholder="tu@empresa.com" />
+          <button class="btn-primary w-full" onclick="doRequestAccess()">Solicitar Credenciales</button>
+        </div>
+      </div>
+      <div id="pane-forgot" class="hidden">
+        <p class="text-sm text-slate-400 mb-4">Recibirás un código de 6 dígitos en tu correo.</p>
+        <div id="forgot-step1" class="space-y-4">
+          <input id="forgot-email" class="input-dark" type="email" placeholder="tu@empresa.com" />
+          <button class="btn-primary w-full" onclick="doForgotPassword()">Enviar Código</button>
+        </div>
+        <div id="forgot-step2" class="hidden space-y-4">
+          <input id="reset-code" class="input-dark" type="text" placeholder="Código de 6 dígitos" maxlength="6" />
+          <input id="new-password" class="input-dark" type="password" placeholder="Nueva contraseña" />
+          <button class="btn-primary w-full" onclick="doResetPassword()">Restablecer Contraseña</button>
+        </div>
+        <div class="mt-4"><button class="btn-ghost w-full text-sm" onclick="switchLoginTab('signin')">← Volver</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <nav id="sidebar">
+    <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.05);">
+      <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:16px;" class="neon-violet">🛒</div>
+      <div><p style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#fff;">VentasFlow</p><p style="font-size:11px;color:#334155;">v3.0 · SaaS</p></div>
+    </div>
+    <div id="nav-items" class="flex-1 py-4 overflow-y-auto"></div>
+    <div style="padding:12px 16px;border-top:1px solid rgba(255,255,255,0.05);">
+      <div style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;cursor:pointer;" onclick="navigate('profile')" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background=''">
+        <img id="sidebar-avatar" src="" alt="avatar" style="width:36px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);object-fit:cover;" />
+        <div style="flex:1;min-width:0;">
+          <p id="sidebar-username" style="font-size:13px;font-weight:600;color:#e2e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></p>
+          <p id="sidebar-role" style="font-size:11px;color:#475569;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></p>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px;">
+        <button class="btn-ghost flex-1 text-xs" onclick="doLogout()">Salir</button>
+        <button id="theme-toggle" class="btn-ghost text-xs" onclick="toggleTheme()" title="Cambiar tema">🌙</button>
+      </div>
+    </div>
+  </nav>
+
+  <header id="topbar">
+    <div><h2 id="page-title" style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:#fff;"></h2>
+      <p id="page-subtitle" style="font-size:12px;color:#475569;"></p></div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span id="topbar-license" class="badge-pro">PRO</span>
+      <span id="topbar-time" style="font-size:12px;color:#475569;font-family:monospace;"></span>
+    </div>
+  </header>
+
+  <main id="content">
+
+    <!-- ADMIN -->
+    <div id="view-admin" class="section-view">
+      <div class="grid grid-cols-4 gap-5 mb-6">
+        <div class="kpi-card"><p class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Usuarios Activos</p><p id="kpi-users" class="text-3xl font-display font-bold grad-violet">—</p></div>
+        <div class="kpi-card"><p class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Productos</p><p id="kpi-prods" class="text-3xl font-display font-bold grad-cyan">—</p></div>
+        <div class="kpi-card"><p class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Ventas Totales</p><p id="kpi-sales" class="text-3xl font-display font-bold" style="color:#34d399">—</p></div>
+        <div class="kpi-card"><p class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Licencia Sistema</p><p id="kpi-license" class="text-3xl font-display font-bold" style="color:#f472b6">—</p></div>
+      </div>
+      <div class="grid grid-cols-3 gap-6">
+        <div class="glass rounded-2xl p-6"><h3 class="font-display font-bold text-sm text-slate-300 mb-4">Distribución de Roles</h3><canvas id="chart-roles" height="220"></canvas></div>
+        <div class="glass rounded-2xl p-6"><h3 class="font-display font-bold text-sm text-slate-300 mb-4">Distribución de Licencias</h3><canvas id="chart-licenses" height="220"></canvas></div>
+        <div class="glass rounded-2xl p-6">
+          <h3 class="font-display font-bold text-sm text-slate-300 mb-4">➕ Crear Empleado</h3>
+          <div class="space-y-3">
+            <input id="new-username" class="input-dark" type="text" placeholder="Nombre de usuario" />
+            <input id="new-email" class="input-dark" type="email" placeholder="correo@empresa.com" />
+            <select id="new-role" class="input-dark"><option value="CAJERO">Cajero</option><option value="GERENTE">Gerente</option><option value="ADMIN">Admin</option></select>
+            <button class="btn-primary w-full" onclick="adminCreateUser()">Crear y Enviar Credenciales</button>
+          </div>
+        </div>
+      </div>
+      <div class="glass rounded-2xl mt-6 overflow-hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid rgba(255,255,255,0.05);">
+          <h3 class="font-display font-bold text-sm text-slate-300">Gestión de Usuarios</h3>
+          <button class="btn-ghost text-xs" onclick="loadAdminMetrics()">↺ Actualizar</button>
+        </div>
+        <div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Usuario</th><th>Correo</th><th>Rol</th><th>Licencia</th><th>Estado</th><th>Creado</th><th>Acción</th></tr></thead><tbody id="users-table-body"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- GERENTE -->
+    <div id="view-manager" class="section-view">
+      <div class="grid grid-cols-4 gap-5 mb-6">
+        <div class="kpi-card neon-violet"><p class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Ingresos Totales</p><p id="mgr-revenue" class="text-2xl font-display font-bold grad-violet">Q —</p></div>
+        <div class="kpi-card neon-cyan"><p class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Ventas del Día</p><p id="mgr-day" class="text-2xl font-display font-bold grad-cyan">Q —</p></div>
+        <div class="kpi-card neon-green"><p class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Ticket Promedio</p><p id="mgr-avg" class="text-2xl font-display font-bold" style="color:#34d399">Q —</p></div>
+        <div class="kpi-card neon-pink"><p class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Transacciones</p><p id="mgr-txns" class="text-2xl font-display font-bold" style="color:#f472b6">—</p></div>
+      </div>
+
+      <!-- Meta de ventas -->
+      <div class="glass rounded-2xl p-5 mb-6">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <h3 class="font-display font-bold text-sm text-slate-300">🎯 Meta de Ventas Diaria</h3>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input id="goal-input" class="input-dark" type="number" placeholder="Meta en Q" style="width:120px;padding:6px 10px;font-size:12px;" />
+            <button class="btn-ghost text-xs" onclick="saveGoal()">Guardar</button>
+          </div>
+        </div>
+        <div class="goal-bar-track"><div id="goal-bar" class="goal-bar-fill" style="width:0%"></div></div>
+        <p id="goal-text" style="font-size:12px;color:#64748b;margin-top:6px;">Cargando...</p>
+      </div>
+
+      <div class="grid grid-cols-3 gap-6 mb-6">
+        <div class="glass rounded-2xl p-6 col-span-2">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <h3 class="font-display font-bold text-sm text-slate-300">Ventas — Últimos 7 Días</h3>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-ghost text-xs" onclick="exportToExcel()">📊 Excel</button>
+              <button class="btn-ghost text-xs" onclick="downloadPDF()">⬇ PDF</button>
+            </div>
+          </div>
+          <canvas id="chart-weekly" height="110"></canvas>
+        </div>
+        <div class="glass rounded-2xl p-6"><h3 class="font-display font-bold text-sm text-slate-300 mb-4">Métodos de Pago</h3><canvas id="chart-payment" height="220"></canvas></div>
+      </div>
+
+      <!-- Filtro por fechas -->
+      <div class="glass rounded-2xl overflow-hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,0.05);">
+          <h3 class="font-display font-bold text-sm text-slate-300">Últimas Transacciones</h3>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input id="filter-from" class="input-dark" type="date" style="width:140px;padding:6px 10px;font-size:12px;" />
+            <input id="filter-to"   class="input-dark" type="date" style="width:140px;padding:6px 10px;font-size:12px;" />
+            <button class="btn-ghost text-xs" onclick="filterByDate()">Filtrar</button>
+            <button class="btn-ghost text-xs" onclick="loadManagerKPIs()">↺</button>
+          </div>
+        </div>
+        <div class="overflow-x-auto"><table class="data-table"><thead><tr><th>#</th><th>Cajero</th><th>Cliente</th><th>Método</th><th>Total</th><th>Fecha</th></tr></thead><tbody id="transactions-table"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- POS -->
+    <div id="view-pos" class="section-view">
+      <div style="display:flex;gap:12px;margin-bottom:16px;">
+        <div style="flex:1;position:relative;">
+          <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#475569;">🔍</span>
+          <input id="pos-search" class="input-dark" style="padding-left:36px;" type="text"
+            placeholder="Buscar o escribe SKU + Enter para escanear..."
+            oninput="debouncedSearch()" onkeydown="if(event.key==='Enter')scanBySKU()" />
+        </div>
+        <select id="pos-category" class="input-dark" style="width:180px;" onchange="loadPOSProducts()">
+          <option value="">Todas las categorías</option>
+        </select>
+      </div>
+      <div id="pos-layout">
+        <div id="products-panel">
+          <div id="products-grid" class="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4"></div>
+          <div id="products-loading" class="hidden" style="display:flex;align-items:center;justify-content:center;padding:48px;"><div class="spinner"></div></div>
+        </div>
+        <div id="cart-panel" class="glass rounded-2xl" style="display:flex;flex-direction:column;overflow:hidden;">
+          <div style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between;">
+            <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:#cbd5e1;">🛒 Carrito</h3>
+            <button style="font-size:12px;color:#475569;background:none;border:none;cursor:pointer;" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='#475569'" onclick="clearCart()">Limpiar</button>
+          </div>
+          <div id="cart-items" style="flex:1;padding:10px;overflow-y:auto;"></div>
+          <div style="border-top:1px solid rgba(255,255,255,0.05);padding:14px;">
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+              <input id="cart-customer" class="input-dark" type="text" placeholder="Nombre del cliente" value="Consumidor Final" style="font-size:12px;padding:8px 12px;" />
+              <input id="cart-nit" class="input-dark" type="text" placeholder="NIT (CF)" value="CF" style="font-size:12px;padding:8px 12px;" />
+              <input id="cart-discount" class="input-dark" type="number" placeholder="% Descuento (0-50)" min="0" max="50" style="font-size:12px;padding:8px 12px;" oninput="renderCart()" />
+              <!-- Método de pago con iconos -->
+              <select id="cart-payment" class="input-dark" style="font-size:12px;padding:8px 12px;">
+                <option value="EFECTIVO">💵 Efectivo</option>
+                <option value="TARJETA">💳 Tarjeta</option>
+                <option value="QR">📱 QR / Transferencia</option>
+              </select>
+              <!-- Calculadora de cambio -->
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input id="cart-paid" class="input-dark" type="number" placeholder="💵 Monto recibido" min="0" step="0.01" style="font-size:12px;padding:8px 12px;flex:1;" oninput="updateChange()" />
+              </div>
+              <p id="cart-change" style="font-size:13px;font-weight:700;text-align:right;min-height:18px;"></p>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding:10px 14px;background:rgba(255,255,255,0.04);border-radius:10px;">
+              <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:#64748b;">TOTAL</span>
+              <span id="cart-total" style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.2rem;" class="grad-violet">Q 0.00</span>
+            </div>
+            <button class="btn-primary w-full text-sm" id="btn-pay" onclick="processSale()">✓ Procesar Pago</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUPERADMIN LICENCIAS -->
+    <div id="view-license" class="section-view" style="max-width:900px;margin:0 auto;">
+      <div class="grid grid-cols-2 gap-6">
+        <div class="glass rounded-2xl p-8">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+            <div><h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;color:#fff;">Licencia del Sistema</h3><p style="font-size:13px;color:#475569;margin-top:4px;">Configuración global SaaS activa</p></div>
+            <span class="badge-enterprise">SUPERADMIN</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="padding:16px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);">
+              <p style="font-size:11px;color:#475569;text-transform:uppercase;font-weight:600;margin-bottom:4px;">Plan Actual</p>
+              <p id="license-current-type" style="font-size:1.8rem;font-family:'Syne',sans-serif;font-weight:700;" class="grad-multi">—</p>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div style="padding:12px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);"><p style="font-size:11px;color:#475569;font-weight:600;margin-bottom:2px;">Máx. Usuarios</p><p id="license-current-users" style="font-size:1.3rem;font-family:'Syne',sans-serif;font-weight:700;color:#67e8f9;">—</p></div>
+              <div style="padding:12px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);"><p style="font-size:11px;color:#475569;font-weight:600;margin-bottom:2px;">Estado</p><p id="license-current-status" style="font-size:1.3rem;font-family:'Syne',sans-serif;font-weight:700;color:#34d399;">—</p></div>
+              <div style="padding:12px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);"><p style="font-size:11px;color:#475569;font-weight:600;margin-bottom:2px;">Dashboard</p><p id="license-current-dashboard" style="font-size:13px;font-weight:600;color:#e2e8f0;">—</p></div>
+              <div style="padding:12px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);"><p style="font-size:11px;color:#475569;font-weight:600;margin-bottom:2px;">Reportes PDF</p><p id="license-current-reports" style="font-size:13px;font-weight:600;color:#e2e8f0;">—</p></div>
+            </div>
+            <div style="padding:12px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);"><p style="font-size:11px;color:#475569;font-weight:600;margin-bottom:2px;">Vigencia</p><p id="license-current-validity" style="font-size:13px;font-weight:600;color:#e2e8f0;">—</p></div>
+          </div>
+        </div>
+        <div class="glass rounded-2xl p-8">
+          <div style="margin-bottom:24px;"><h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;color:#fff;">Actualizar Licencia</h3></div>
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div><label style="font-size:11px;font-weight:600;color:#475569;text-transform:uppercase;display:block;margin-bottom:4px;">Tipo de Licencia</label>
+              <select id="license-type" class="input-dark"><option value="BASIC">BASIC</option><option value="PRO">PRO</option><option value="ENTERPRISE">ENTERPRISE</option></select></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div><label style="font-size:11px;font-weight:600;color:#475569;text-transform:uppercase;display:block;margin-bottom:4px;">Fecha Inicio</label><input id="license-start" class="input-dark" type="date" /></div>
+              <div><label style="font-size:11px;font-weight:600;color:#475569;text-transform:uppercase;display:block;margin-bottom:4px;">Fecha Fin</label><input id="license-end" class="input-dark" type="date" /></div>
+            </div>
+            <div><label style="font-size:11px;font-weight:600;color:#475569;text-transform:uppercase;display:block;margin-bottom:4px;">Estado</label>
+              <select id="license-status" class="input-dark"><option value="1">Activa</option><option value="0">Inactiva</option></select></div>
+            <div style="padding:14px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);font-size:12px;color:#64748b;">
+              <p style="font-weight:600;color:#94a3b8;margin-bottom:6px;">Resumen de planes:</p>
+              <p>🟡 <b>BASIC:</b> 3 usuarios · sin dashboard · sin PDF</p>
+              <p>🟣 <b>PRO:</b> 6 usuarios · dashboard · reportes PDF</p>
+              <p>🩷 <b>ENTERPRISE:</b> 10 usuarios · acceso total</p>
+            </div>
+            <button class="btn-primary w-full" onclick="updateLicense()">Guardar Licencia</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PERFIL -->
+    <div id="view-profile" class="section-view" style="max-width:560px;margin:0 auto;">
+      <div class="glass rounded-2xl p-8">
+        <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:28px;">
+          <img id="profile-avatar" src="" alt="avatar" style="width:84px;height:84px;border-radius:20px;border:2px solid rgba(99,102,241,0.5);object-fit:cover;margin-bottom:14px;" class="neon-violet" />
+          <h2 id="profile-name" style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.2rem;color:#fff;"></h2>
+          <p id="profile-email" style="font-size:13px;color:#475569;margin-top:4px;"></p>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <span id="profile-role-badge"></span>
+            <span id="profile-license-badge"></span>
+          </div>
+        </div>
+        <div style="margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:#cbd5e1;margin-bottom:10px;">📷 Foto de Perfil</h3>
+          <div style="display:flex;gap:10px;">
+            <input id="profile-photo-url" class="input-dark" type="url" placeholder="URL de imagen" style="flex:1;" />
+            <button class="btn-primary" onclick="updatePhoto()">Guardar</button>
+          </div>
+        </div>
+        <div>
+          <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:#cbd5e1;margin-bottom:10px;">🔒 Cambiar Contraseña</h3>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <input id="curr-pass" class="input-dark" type="password" placeholder="Contraseña actual" />
+            <input id="new-pass"  class="input-dark" type="password" placeholder="Nueva contraseña" />
+            <input id="conf-pass" class="input-dark" type="password" placeholder="Confirmar nueva contraseña" />
+            <button class="btn-primary w-full" onclick="changePassword()">Actualizar Contraseña</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL VOUCHER/TICKET -->
+<div id="modal-ticket" class="modal-overlay" style="display:none;">
+  <div class="modal-box" style="max-width:400px;">
+    <button onclick="closeModal('modal-ticket')" style="position:absolute;top:14px;right:16px;background:none;border:none;color:#64748b;font-size:20px;cursor:pointer;">✕</button>
+    <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:#fff;margin-bottom:16px;">🧾 Voucher de Venta</h3>
+    <div id="ticket-content" style="max-height:420px;overflow-y:auto;border-radius:10px;"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn-primary" style="flex:1;font-size:13px;" onclick="printTicket()">🖨️ Imprimir</button>
+      <button class="btn-ghost" style="flex:1;font-size:13px;" onclick="downloadVoucherPDF()">📄 Guardar PDF</button>
+      <button class="btn-ghost" style="font-size:13px;padding:10px 14px;" onclick="closeModal('modal-ticket')">✕</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL BLOQUEO POR INACTIVIDAD -->
+<div id="modal-lock" class="modal-overlay" style="display:none;z-index:9000;">
+  <div class="modal-box" style="max-width:380px;text-align:center;">
+    <div style="font-size:3rem;margin-bottom:12px;">🔒</div>
+    <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;color:#fff;margin-bottom:4px;">Sesión suspendida</h3>
+    <p style="font-size:13px;color:#64748b;margin-bottom:20px;">Inactividad detectada. Ingresa tu contraseña para continuar.</p>
+    <p id="lock-username" style="font-size:14px;font-weight:600;color:#818cf8;margin-bottom:16px;"></p>
+    <input id="lock-password" class="input-dark" type="password" placeholder="Tu contraseña" style="margin-bottom:12px;" onkeydown="if(event.key==='Enter')unlockScreen()" />
+    <button class="btn-primary w-full" onclick="unlockScreen()">Desbloquear</button>
+    <button class="btn-ghost w-full" style="margin-top:8px;font-size:12px;" onclick="doLogout()">Cerrar sesión</button>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="script.js"></script>
+</body>
+</html>
